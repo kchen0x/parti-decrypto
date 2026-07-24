@@ -4,9 +4,8 @@ const AMBER = 'amber';
 const VIOLET = 'violet';
 const MIN_TEAM = 2;
 const MAX_TEAM = 4;
-const CLUE_MS = 90000;
-const GUESS_MS = 60000;
-const TIMER = 'cipher-clash:phase';
+const CLUE_SOFT_MS = 90000;
+const GUESS_SOFT_MS = 60000;
 
 // The active selection is private Worker memory. Never put it into ctx.state.
 const WORD_SETS = [
@@ -120,7 +119,6 @@ function hostOnly(ctx, player) {
 }
 
 function resetLobby(ctx, notice, clearTeams) {
-  ctx.clearTimer(TIMER);
   secrets = null;
   for (const id of Object.keys(ctx.state.players)) {
     if (clearTeams) ctx.state.players[id].team = null;
@@ -155,16 +153,7 @@ function sendPrivateViews(ctx) {
   for (const id of Object.keys(ctx.state.players)) sendPrivateView(ctx, id);
 }
 
-function schedule(ctx, milliseconds, callback) {
-  const gameId = ctx.state.gameId;
-  const turnId = ctx.state.turn && ctx.state.turn.id;
-  ctx.setTimer(TIMER, milliseconds, () => {
-    if (ctx.state.gameId === gameId && ctx.state.turn && ctx.state.turn.id === turnId) callback();
-  });
-}
-
 function finish(ctx, winner, finishReason) {
-  ctx.clearTimer(TIMER);
   ctx.state.phase = 'finished';
   ctx.state.winner = winner;
   ctx.state.finishReason = finishReason;
@@ -215,10 +204,9 @@ function startTurn(ctx, team) {
     ownSubmitted: false,
     interceptSubmitted: false
   };
-  ctx.state.deadline = ctx.now() + CLUE_MS;
+  ctx.state.deadline = ctx.now() + CLUE_SOFT_MS;
   ctx.state.notice = `${team === AMBER ? '琥珀队' : '紫罗兰队'}正在传讯；${nameOf(ctx.state.players[encoderId].name)}是编码员。`;
   sendPrivateViews(ctx);
-  schedule(ctx, CLUE_MS, () => resolveTurn(ctx, 'clue-timeout'));
   ctx.broadcast('cipher-clash:turn-start', { number: ctx.state.turn.number, team, encoderId });
 }
 
@@ -226,10 +214,9 @@ function beginGuessing(ctx) {
   const secret = currentSecrets(ctx);
   if (!secret || !secret.current || !ctx.state.turn) return resetLobby(ctx, '隐藏游戏数据不可用，本局已安全重置。', false);
   ctx.state.phase = 'guessing';
-  ctx.state.deadline = ctx.now() + GUESS_MS;
+  ctx.state.deadline = ctx.now() + GUESS_SOFT_MS;
   ctx.state.notice = '三条线索已公开。两队请分别提交解码与截获猜测。';
   sendPrivateViews(ctx);
-  schedule(ctx, GUESS_MS, () => resolveTurn(ctx, 'guess-timeout'));
   ctx.broadcast('cipher-clash:clues-ready', { number: ctx.state.turn.number, team: ctx.state.turn.team });
 }
 
@@ -237,8 +224,6 @@ function resolveTurn(ctx, cause) {
   const secret = currentSecrets(ctx);
   const turn = ctx.state.turn;
   if (!secret || !secret.current || !turn || secret.current.id !== turn.id) return resetLobby(ctx, '隐藏游戏数据不可用，本局已安全重置。', false);
-  ctx.clearTimer(TIMER);
-
   const current = secret.current;
   const active = turn.team;
   const interceptor = other(active);
@@ -351,7 +336,6 @@ export default defineRoom({
       if (playerCount < 4 || amber.length < MIN_TEAM || violet.length < MIN_TEAM || amber.length > MAX_TEAM || violet.length > MAX_TEAM || amber.length + violet.length !== playerCount) {
         return notify(ctx, player.id, '开始前需要全部玩家分队，且两队各有 2 至 4 人。');
       }
-      ctx.clearTimer(TIMER);
       ctx.state.gameId += 1;
       ctx.state.phase = 'cluing';
       ctx.state.teams = scores();
