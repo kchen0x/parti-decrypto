@@ -1,0 +1,36 @@
+{
+  "partiVersion": "0.1.0",
+  "protocolVersion": 1,
+  "id": "cipher-clash",
+  "name": "截码战",
+  "version": "1.0.0",
+  "packageMode": "blob",
+  "description": "4 至 8 人两队对抗：传递己方代码，同时截获敌方信号。",
+  "author": { "name": "Kun Chen" },
+  "entry": {
+    "ui": "index.html",
+    "worker": "room.worker.js"
+  },
+  "room": {
+    "minPlayers": 4,
+    "maxPlayers": 8,
+    "allowSpectators": false
+  },
+  "sync": { "mode": "snapshot" },
+  "permissions": {
+    "network": false,
+    "storage": "none",
+    "camera": false,
+    "microphone": false,
+    "clipboard": false,
+    "sensors": []
+  },
+  "actions": {
+    "chooseTeam": { "payload": "{ team: 'amber' | 'violet' | null }" },
+    "startGame": { "payload": "null" },
+    "submitClue": { "payload": "{ text: string }" },
+    "submitGuess": { "payload": "{ code: [number, number, number] }" },
+    "restart": { "payload": "null" },
+    "resetLobby": { "payload": "null" }
+  }
+}
