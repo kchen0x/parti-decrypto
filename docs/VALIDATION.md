@@ -4,6 +4,7 @@
 
 - [ ] `parti.room.json` 是合法 JSON。
 - [ ] manifest 的 `entry.ui` 是 `index.html`，`entry.worker` 是 `room.worker.js`。
+- [ ] 如设置 manifest `cover`，其文件已提交到房间包内；使用静态资源时 `packageMode` 为 `filesystem`。
 - [ ] manifest 与 Worker meta 都是 4–8 人。
 - [ ] Worker 只有 `@parti/worker-sdk` 的 canonical import，且默认导出 `defineRoom(...)`。
 - [ ] `ctx.state` 中不存在当前的 `keywords`、代码、`ownGuess`、`interceptGuess` 或未公开 clue 文本；已揭晓记录除外。

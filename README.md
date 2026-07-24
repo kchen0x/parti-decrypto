@@ -4,6 +4,8 @@
 
 > 这是一个非官方、非商业的数字化实现，使用原创界面、关键词和代码。`Decrypto` 是其各自权利人的商标；本项目不隶属或获其认可。
 
+![《截码战》原创卡通封面](assets/cipher-clash-cover.jpg)
+
 ## 立即游玩
 
 1. 打开 [Parti](https://parti.linkai.work)。
@@ -18,6 +20,8 @@
 ```text
 parti-decrypto/
 ├── parti.room.json        # Parti manifest
+├── assets/
+│   └── cipher-clash-cover.jpg  # 市场卡片与仓库首页封面
 ├── index.html             # 响应式客户端 UI
 ├── room.worker.js         # Worker 权威游戏逻辑
 ├── AGENTS.md              # 后续 AI/开发者维护说明
