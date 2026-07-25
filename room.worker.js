@@ -2,6 +2,7 @@ import { defineRoom } from '@parti/worker-sdk';
 
 const AMBER = 'amber';
 const VIOLET = 'violet';
+const MIN_PLAYERS = 4;
 const MIN_TEAM = 2;
 const MAX_TEAM = 4;
 const CLUE_SOFT_MS = 90000;
@@ -47,6 +48,26 @@ function nameOf(value) {
 
 function members(state, team) {
   return Object.keys(state.players).filter((id) => state.players[id].team === team);
+}
+
+function startBlockers(state) {
+  const amber = members(state, AMBER);
+  const violet = members(state, VIOLET);
+  const playerCount = Object.keys(state.players).length;
+  const unassigned = Math.max(0, playerCount - amber.length - violet.length);
+  const blockers = [];
+  if (playerCount < MIN_PLAYERS) blockers.push(`还差 ${MIN_PLAYERS - playerCount} 位玩家`);
+  if (unassigned > 0) blockers.push(`还有 ${unassigned} 位玩家尚未分队`);
+  if (amber.length < MIN_TEAM) blockers.push(`琥珀队还差 ${MIN_TEAM - amber.length} 人`);
+  if (violet.length < MIN_TEAM) blockers.push(`紫罗兰队还差 ${MIN_TEAM - violet.length} 人`);
+  if (amber.length > MAX_TEAM) blockers.push('琥珀队超过 4 人上限');
+  if (violet.length > MAX_TEAM) blockers.push('紫罗兰队超过 4 人上限');
+  return blockers;
+}
+
+function startBlockerMessage(state) {
+  const blockers = startBlockers(state);
+  return blockers.length ? `暂不能开始：${blockers.join('；')}。` : '';
 }
 
 function shuffle(items, ctx) {
@@ -330,12 +351,8 @@ export default defineRoom({
     startGame(ctx, { player }) {
       if (!hostOnly(ctx, player)) return notify(ctx, player.id, '只有房主可以开始游戏。');
       if (ctx.state.phase !== 'lobby') return notify(ctx, player.id, '当前不在大厅阶段。');
-      const amber = members(ctx.state, AMBER);
-      const violet = members(ctx.state, VIOLET);
-      const playerCount = Object.keys(ctx.state.players).length;
-      if (playerCount < 4 || amber.length < MIN_TEAM || violet.length < MIN_TEAM || amber.length > MAX_TEAM || violet.length > MAX_TEAM || amber.length + violet.length !== playerCount) {
-        return notify(ctx, player.id, '开始前需要全部玩家分队，且两队各有 2 至 4 人。');
-      }
+      const blockerMessage = startBlockerMessage(ctx.state);
+      if (blockerMessage) return notify(ctx, player.id, blockerMessage);
       ctx.state.gameId += 1;
       ctx.state.phase = 'cluing';
       ctx.state.teams = scores();

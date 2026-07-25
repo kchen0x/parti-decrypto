@@ -3,7 +3,7 @@
   "protocolVersion": 1,
   "id": "cipher-clash",
   "name": "截码战",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "packageMode": "filesystem",
   "description": "4 至 8 人两队对抗：传递己方代码，同时截获敌方信号。",
   "cover": "assets/cipher-clash-cover.jpg",
